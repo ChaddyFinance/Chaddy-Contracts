@@ -78,6 +78,9 @@ contract MasterChef is Ownable {
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event SetFeeAddress(address indexed user, address indexed newAddress);
+    event SetDevAddress(address indexed user, address indexed newAddress);
+    event SetCommAddress(address indexed user, address indexed newAddress);
 
     constructor(
         ChadToken _chad,
@@ -168,7 +171,7 @@ contract MasterChef is Ownable {
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
         uint256 chadReward = multiplier.mul(chadPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        chad.mint(devaddr, chadReward.div(2));
+        chad.mint(devaddr, chadReward.div(1));
         chad.mint(commAddr, chadReward.div(2));
         chad.mint(address(this), chadReward);
         pool.accChadPerShare = pool.accChadPerShare.add(chadReward.mul(1e12).div(lpSupply));
@@ -243,17 +246,21 @@ contract MasterChef is Ownable {
     function dev(address _devaddr) public {
         require(msg.sender == devaddr, "dev: wut?");
         devaddr = _devaddr;
+        emit SetDevAddress(msg.sender, _devaddr);
     }
 
     // Update community address.
     function community(address _commaddr) public {
-        require(msg.sender == commAddr, "chad: wut?");
+        require(msg.sender == commAddr, "community: wut?");
         commAddr = _commaddr;
+        emit SetCommAddress(msg.sender, _commaddr);
     }
 
-    function setFeeAddress(address _feeAddress) public{
-        require(msg.sender == feeAddress, "setFeeAddress: FORBIDDEN");
-        feeAddress = _feeAddress;
+    // Update fee address.
+    function fee(address _feeaddress) public{
+        require(msg.sender == feeAddress, "fee: wut?");
+        feeAddress = _feeaddress;
+        emit SetFeeAddress(msg.sender, _feeaddress);
     }
 
     //Pancake has to add hidden dummy pools inorder to alter the emission, here we make it simple and transparent to all.
